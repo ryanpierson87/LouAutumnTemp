@@ -23,10 +23,10 @@ def main():
     conn = sqlite3.connect('weather.db')
     weather = pd.read_sql('select DATE, (TMAX+TMIN)/2 Temp, TMAX high, TMIN low, YEAR, MONTH, DAY from weather where station = "USW00093821"', conn)
     plt.subplots(figsize=(20,10))
-    sns.boxplot(x=weather['YEAR'], y=weather['high'])
+    sns.boxplot(x=weather['YEAR'], y=weather['high']).set_title("Box Yearly Comparison of Temperatures")
     plt.grid(axis='y', color='lightblue')
     plt.subplots(figsize=(20,10))
-    sns.violinplot(x=weather['YEAR'], y=weather['high'])
+    sns.violinplot(x=weather['YEAR'], y=weather['high']).set_title("Violin Yearly Comparison of Temperatures")
     plt.grid(axis='y', color='lightblue')
     
 
