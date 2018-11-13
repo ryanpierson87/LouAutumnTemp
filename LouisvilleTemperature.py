@@ -19,12 +19,27 @@ import matplotlib.pyplot as plt
 
 ############ Configure the data
 def main():
-    #output_notebook()
+    
+    #### Create the Database
+    conn = sqlite3.connect('weather.db')
+    df = pd.read_csv('/Users/ryanpierson/Downloads/1502536.csv', low_memory=False)
+    df['DATE'] = pd.to_datetime(df['DATE'])
+    df['YEAR'], df['MONTH'], df['DAY'] = df['DATE'].dt.year, df['DATE'].dt.month, df['DATE'].dt.day
+    #locations table
+    df_loc = df[['STATION', 'NAME','LATITUDE', 'LONGITUDE', 'ELEVATION']].copy()
+    df_loc.drop_duplicates(inplace=True)
+    df_loc = df_loc[['STATION', 'NAME', 'LATITUDE', 'LONGITUDE', 'ELEVATION']].set_index('STATION')
+    df_loc.to_sql('locations', conn, if_exists='replace')
+    
+    #weather table
+    df_weather = df[['STATION', 'DATE', 'YEAR', 'MONTH', 'DAY','TMAX','TMIN']].copy()
+    df_weather.to_sql('weather', conn, if_exists='replace')
     
     x= "grey"
     
-    conn = sqlite3.connect('weather.db')
+    #### Generate the graphs from the database
     weather = pd.read_sql('select DATE, (TMAX+TMIN)/2 Temp, TMAX high, TMIN low, YEAR, MONTH, DAY from weather where station = "USW00093821" and YEAR < 2018', conn)
+    
     #Plot Years
     plt.subplots(figsize=(20,10))
     sns.boxplot(x=weather['YEAR'], y=weather['Temp'], color="#6699ff").set_title("Box Yearly Comparison of Temperatures")
@@ -32,6 +47,7 @@ def main():
     plt.subplots(figsize=(20,10))
     sns.violinplot(x=weather['YEAR'], y=weather['Temp'], color="#6699ff").set_title("Violin Yearly Comparison of Temperatures")
     plt.grid(axis='y', color=x)
+    
     #Box/Violin plots of Autumn
     autumn = weather[weather['MONTH'].isin([9, 10, 11])]
     plt.subplots(figsize=(20,10))
