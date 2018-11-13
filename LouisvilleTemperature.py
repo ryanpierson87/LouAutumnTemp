@@ -13,27 +13,32 @@ import matplotlib.pyplot as plt
 #import numpy as np
 
 
+def create_database(connection):
     
+    df = pd.read_csv('1502536.csv', low_memory=False)
+    df['DATE'] = pd.to_datetime(df['DATE'])
+    df['YEAR'], df['MONTH'], df['DAY'] = df['DATE'].dt.year, df['DATE'].dt.month, df['DATE'].dt.day
+    
+    #locations table
+    df_loc = df[['STATION', 'NAME','LATITUDE', 'LONGITUDE', 'ELEVATION']].copy()
+    df_loc.drop_duplicates(inplace=True)
+    df_loc = df_loc[['STATION', 'NAME', 'LATITUDE', 'LONGITUDE', 'ELEVATION']].set_index('STATION')
+    df_loc.to_sql('locations', connection, if_exists='replace')
+    
+    #weather table
+    df_weather = df[['STATION', 'DATE', 'YEAR', 'MONTH', 'DAY','TMAX','TMIN']].copy()
+    df_weather.to_sql('weather', connection, if_exists='replace')
+
+   
 
 
 
 ############ Configure the data
 def main():
-    
-    #### Create the Database
     conn = sqlite3.connect('weather.db')
-    df = pd.read_csv('/Users/ryanpierson/Downloads/1502536.csv', low_memory=False)
-    df['DATE'] = pd.to_datetime(df['DATE'])
-    df['YEAR'], df['MONTH'], df['DAY'] = df['DATE'].dt.year, df['DATE'].dt.month, df['DATE'].dt.day
-    #locations table
-    df_loc = df[['STATION', 'NAME','LATITUDE', 'LONGITUDE', 'ELEVATION']].copy()
-    df_loc.drop_duplicates(inplace=True)
-    df_loc = df_loc[['STATION', 'NAME', 'LATITUDE', 'LONGITUDE', 'ELEVATION']].set_index('STATION')
-    df_loc.to_sql('locations', conn, if_exists='replace')
     
-    #weather table
-    df_weather = df[['STATION', 'DATE', 'YEAR', 'MONTH', 'DAY','TMAX','TMIN']].copy()
-    df_weather.to_sql('weather', conn, if_exists='replace')
+    
+    create_database(conn)
     
     x= "grey"
     
